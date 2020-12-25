@@ -1,0 +1,7 @@
+{
+	"env" : {
+		"WITH_MEM": "command time -l",
+		"CXXFLAGS": "-DDEBUG",
+	},
+	"shell_cmd": "cd $folder; g++ -std=c++17 \\$CXXFLAGS -O2 src/$file_base_name.cpp -o bin/$file_base_name && export FILE=$file_base_name && export INPUT=\\${FILE%%.*} && export PART=\\${FILE##*.} && echo \\$INPUT \\$PART && \\$WITH_MEM ./bin/$file_base_name input/\\$INPUT.in"
+}
