@@ -137,12 +137,11 @@ const auto concat = withCaching([](auto& lhs, auto& rhs)
 });
 
 using Rule = std::pair<int, std::vector<std::string>>;
-using Rules = std::stack<Rule,
-                         std::vector<Rule>>;
+using Rules = std::stack<Rule, std::vector<Rule>>;
 using Parser = std::function<bool(std::string_view)>;
 using RuleParsers = std::unordered_map<int, Parser>;
 
-auto buildParser(const std::vector<std::string>&    rule,
+auto buildParser(const std::vector<std::string>&     rule,
                  const std::shared_ptr<RuleParsers>& ruleParsers)
 {
   enum Op { e_CONCAT, e_ALT };
@@ -150,12 +149,12 @@ auto buildParser(const std::vector<std::string>&    rule,
   std::stack<Parser> argStack;
 
   const auto parserAt = [ruleParsers](int ruleNum) {
-    return Parser([ruleParsers, ruleNum](std::string_view token) {
+    return [ruleParsers, ruleNum](std::string_view token) {
       return ruleParsers->at(ruleNum)(token);
-    });
+    };
   };
 
-  const auto apply = [](Op op, auto lhs, auto rhs) {
+  const auto apply = [](Op op, auto& lhs, auto& rhs) {
     switch (op) {
       case e_ALT:
         return Parser(alternative(lhs, rhs));
@@ -233,8 +232,6 @@ auto buildParser(Rules rules)
 }
 
 class Solution {
-
-    static constexpr std::size_t N = 20;
 
     uint64_t solution = 0;
     int calls = 0;
