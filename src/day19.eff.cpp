@@ -467,9 +467,7 @@ class ParserUtil {
         assert(it == cache->end() ||
                              dynamic_cast<Reference *>(it->second) != nullptr);
         if (it == cache->end()) {
-          auto& ref = store->emplace_back(Reference(parser));
-          auto *ret = &std::get<Reference>(ref);
-          cache->emplace(ruleName, ret);
+          cache->emplace(ruleName, parser);
           return;
         }
 
