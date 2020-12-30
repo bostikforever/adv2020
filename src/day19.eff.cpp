@@ -464,15 +464,39 @@ class ParserUtil {
                              Parser           *parser)
     {
         const auto it = cache->find(std::string(ruleName));
-        assert(it == cache->end() ||
+        assert(it == std::cend(*cache) ||
                              dynamic_cast<Reference *>(it->second) != nullptr);
-        if (it == cache->end()) {
+        if (it == std::cend(*cache)) {
           cache->emplace(ruleName, parser);
           return;
         }
 
-        auto* referenceParser = static_cast<Reference *>(it->second);
-        referenceParser->setParser(parser);
+        const auto findInStore = [store](const Parser * const parser) {
+          return std::find_if(std::begin(*store),
+                              std::end(*store),
+                              [&](const auto& val) {
+                                 return std::visit([&](const auto& storedPar) {
+                                   return &storedPar == parser;
+                                 }, val);
+                               });
+        };
+
+        const auto copyParser = [](ParserUnion&       target,
+                                   const ParserUnion& source) {
+          std::visit([&target](auto&& parser) {
+            using T = std::decay_t<decltype(parser)>;
+            target.emplace<T>(parser);
+          },
+          source);
+        };
+
+        const auto storeParserIt = findInStore(parser);
+        auto storeReferenceIt = findInStore(it->second);
+        assert(storeParserIt != std::cend(*store));
+        assert(storeReferenceIt != std::cend(*store));
+        copyParser(*storeReferenceIt, *storeParserIt);
+        // auto *referenceParser = static_cast<Reference *>(it->second);
+        // referenceParser->setParser(parser);
     }
 };
 
