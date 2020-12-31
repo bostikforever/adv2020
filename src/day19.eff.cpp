@@ -241,6 +241,26 @@ class Reference final : public Parser {
 
 };
 
+template <typename T>
+class LazyValue
+{
+    using Ret = decltype(std::declval<T>()());
+
+    const T& lazyValue;
+
+  public:
+    template <typename F>
+    LazyValue(F&& lazyValue)
+    : lazyValue(lazyValue)
+    {}
+
+    operator Ret () &&
+    {
+      return lazyValue();
+    }
+};
+template <class T> LazyValue(T) -> LazyValue<std::decay_t<T>>;
+
 class Cache {
 
     struct KeyLess {
@@ -270,15 +290,7 @@ class Cache {
         // }
 
         auto&& args = std::make_tuple(parser, compare);
-        // const auto args = std::make_tuple(parser, std::string(compare));
-        const auto it = cache.find(args);
-        if (it != std::end(cache)) {
-            return it->second;
-        }
-        // const auto stringsIt = strings.emplace(compare).first;
-        // args.second = std::string_view(stringsIt->data(),
-        //                                stringsIt->size());
-        return cache.emplace(args, compute()).first->second;
+        return cache.try_emplace(args, LazyValue(compute)).first->second;
     }
 
     void clear()
